@@ -1,7 +1,7 @@
 [package]
 name = "mock-game-rs"
 version = "0.1.0"
-authors = ["Jean-Claude Paquin <jcrpaquin@yahoo.com>"]
+authors = ["Jean-Claude Paquin <jcrpaquin@stochastic.site>"]
 edition = "2018"
 
 [dependencies]
