@@ -2,9 +2,14 @@
 use crate::board::Board;
 
 
+pub type TeamID = u8;
+
 // Contains all the fields used by other unit types
 #[derive(PartialEq, Eq, Hash)]
 pub struct UnitBase {
+    pub team: TeamID,
+    pub pos: Option<(u8, u8)>,
+
     pub health: u16,
     pub damage: u16,
 
@@ -20,6 +25,9 @@ impl Default for UnitBase {
 
     fn default() -> UnitBase {
         UnitBase {
+            team: 0,
+            pos: None,
+
             health: 0,
             damage: 0,
 
@@ -49,6 +57,7 @@ pub trait UnitActions {
 
 pub trait Unit : UnitInner + UnitActions {}
 impl<T: UnitInner + UnitActions> Unit for T {}
+
 
 
 #[macro_export]
