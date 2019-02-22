@@ -40,26 +40,24 @@ fn main() {
     let cell = make_cell(cat);
 
     if let Some(ref unit) = cell {
-        println!("Unit health: {}", unit.unit().health);
+        println!("Unit health: {}", unit.borrow().unit().health);
     } else {
         println!("No unit available.");
     }
 
-    let mut board = Board {
-        grid: Default::default()
-    };
+    let mut board = Board::new();
 
-    if let None = board.grid[0][0] {
+    if board.unit_at((0, 0)).is_none() {
         println!("First space is empty.");
     }
 
     board.grid[0][0] = cell;
-
-    if let Some(ref mut unit) = board.grid[0][0] {
+    
+    if let Some(ref mut unit) = board.unit_at_mut((0, 0)) {
         println!("First space filled!");
 
         unit.unit_mut().health = 20;
 
         println!("Unit health after update: {}", unit.unit().health);
-    }
+    };
 }
