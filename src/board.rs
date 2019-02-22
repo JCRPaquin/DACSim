@@ -1,6 +1,9 @@
 
-use std::rc::*;
 use std::cell::RefCell;
+use std::cell::RefMut;
+use std::cell::Ref;
+use std::rc::Rc;
+use std::rc::Weak;
 use crate::units::Unit;
 
 
@@ -17,13 +20,21 @@ pub fn make_cell<'a>(unit: impl Unit + 'a) -> GridCell<'a> {
 
 impl<'a> Board<'a> {
 
-    fn place_piece(&mut self, cell: GridCell<'a>, x: u8, y: u8) {
+    pub fn new() -> Board<'a> {
+        Board {
+            grid: Default::default(),
+            units: vec![]
+        }
+    }
+
+    pub fn place_piece(&mut self, cell: GridCell<'a>, pos: (u8, u8)) {
+        let (x, y) = pos;
         let board_space = &mut self.grid[x as usize][y as usize];
         
         // Evict current tennant
-        let current_unit: GridCell<'a> = *board_space;
+        let current_unit: &mut GridCell<'a> = board_space;
         if let Some(ref unit) = current_unit {
-            self.units.retain(|&potential_unit| {
+            self.units.retain(|ref potential_unit| {
                 match potential_unit.upgrade() {
                     Some(active_unit) =>
                         active_unit.borrow().unit() != unit.borrow().unit(),
@@ -31,17 +42,38 @@ impl<'a> Board<'a> {
                 }
             });
 
-            let unit_ref = unit.borrow_mut().unit_mut();
+            let mut borrow = unit.borrow_mut();
+            let unit_ref = borrow.unit_mut();
             unit_ref.pos = None;
         }
 
         // Place new tennant
         match cell {
             Some(ref unit) => {
-                *board_space = cell;
                 self.units.push(Rc::downgrade(unit));
+
+                unit.borrow_mut().unit_mut().pos = Some(pos);
+                *board_space = cell;
             },
             None => *board_space = None
+        }
+    }
+
+    pub fn unit_at(&self, pos: (u8, u8)) -> Option<Ref<Unit + 'a>> {
+        let grid_pos = &self.grid[pos.0 as usize][pos.1 as usize];
+
+        match grid_pos {
+            Some(ref rc_unit) => Some(rc_unit.borrow()),
+            None => None
+        }
+    }
+
+    pub fn unit_at_mut(&self, pos: (u8, u8)) -> Option<RefMut<Unit + 'a>> {
+        let grid_pos = &self.grid[pos.0 as usize][pos.1 as usize];
+
+        match grid_pos {
+            Some(ref rc_unit) => Some(rc_unit.borrow_mut()),
+            None => None
         }
     }
 }
